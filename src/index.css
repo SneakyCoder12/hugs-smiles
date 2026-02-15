@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: 174 75% 26%;
+  --primary-hover: 174 78% 21%;
+  --background-light: 210 20% 98%;
+  --background-pure: 0 0% 100%;
+  --surface-light: 0 0% 100%;
+  --surface-accent: 220 14% 96%;
+  --text-main: 220 39% 11%;
+  --text-secondary: 215 14% 34%;
+  --accent-blue: 215 26% 27%;
+  --border-light: 220 13% 91%;
+}
+
+body {
+  @apply bg-background-light text-text-main font-sans antialiased;
+}
+
+::selection {
+  @apply bg-primary text-white;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Remove spinner from number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
