@@ -9,25 +9,23 @@ export default function RequestBanner() {
     <section className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-primary/20 shadow-xl shadow-primary/5">
       {/* Gold gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-transparent to-primary/[0.08]" />
-
       {/* Decorative dots pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#b8860b_1px,transparent_1px)] [background-size:20px_20px]" />
-
       {/* Top-right glow */}
       <div className="absolute -top-20 -right-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl" />
       {/* Bottom-left glow */}
       <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl" />
 
       <div className="relative px-4 sm:px-8 md:px-14 py-8 md:py-14">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
 
           {/* Left side — text */}
-          <div className="text-center md:text-start max-w-xl">
+          <div className="text-center md:text-start max-w-xl w-full">
             <div className="inline-flex items-center gap-2 mb-4 bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/20">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{t('premiumService')}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-black text-foreground tracking-tight mb-3 leading-tight">
+            <h2 className="text-xl sm:text-3xl md:text-4xl font-display font-black text-foreground tracking-tight mb-3 leading-tight">
               {t('cantFindDream')}
             </h2>
             <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-md">
@@ -35,20 +33,20 @@ export default function RequestBanner() {
             </p>
 
             {/* Trust badges */}
-            <div className="flex items-center gap-4 mt-5 justify-center md:justify-start">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-5 justify-center md:justify-start">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Search className="h-3.5 w-3.5 text-primary/60" />
+                <Search className="h-3.5 w-3.5 text-primary/60 flex-shrink-0" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">{t('weSearchForYou')}</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Star className="h-3.5 w-3.5 text-primary/60 fill-primary/40" />
+                <Star className="h-3.5 w-3.5 text-primary/60 fill-primary/40 flex-shrink-0" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">{t('vipService')}</span>
               </div>
             </div>
           </div>
 
-          {/* Right side — plate images + CTA */}
-          <div className="flex flex-col items-center gap-5 w-full md:w-auto">
+          {/* Right side — CTA */}
+          <div className="flex flex-col items-center gap-5 w-full md:w-auto flex-shrink-0">
             {/* Decorative plates stack — hidden on mobile */}
             <div className="relative w-[200px] h-[70px] hidden md:block">
               <img
@@ -64,9 +62,8 @@ export default function RequestBanner() {
             </div>
             <Link
               to="/request"
-              className="relative flex-shrink-0 inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-sm sm:text-base hover:shadow-xl hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300 group overflow-hidden"
+              className="relative w-full md:w-auto flex-shrink-0 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-sm sm:text-base hover:shadow-xl hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300 group overflow-hidden"
             >
-              {/* Shimmer effect */}
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               <span className="relative flex items-center gap-2">
                 {t('submitRequest')} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
