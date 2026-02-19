@@ -1,48 +1,351 @@
-import { memo } from 'react';
-import { Gavel, ShoppingCart } from 'lucide-react';
+import { memo, useState, useEffect, useRef } from 'react';
+
+import { Link, useNavigate } from 'react-router-dom';
 import { usePlateImage } from '@/hooks/usePlateGenerator';
-import type { PlateListing } from '@/data/listings';
+import { Phone, MessageCircle, Heart, Car, Bike } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PlateCardProps {
-  listing: PlateListing;
+  emirate: string;
+  code: string;
+  number: string;
+  price?: string;
+  plateUrl: string;
+  comingSoon?: boolean;
+  sellerPhone?: string | null;
+  plateNumber?: string;
+  listingId?: string;
+  status?: string;
+  plateStyle?: 'private' | 'bike' | 'classic';
+  /** Explicit vehicle type for icon display; derived from plateStyle if omitted */
+  vehicleType?: 'car' | 'bike' | 'classic';
 }
 
-function PlateCard({ listing }: PlateCardProps) {
-  const dataUrl = usePlateImage(listing.emirate, listing.code, listing.number);
-  const isBid = listing.priceType === 'bid';
-  const priceLabel = isBid ? 'Current Bid' : 'Fixed Price';
+/** Detect if device has touch capability — used to fully disable flip cards */
+function useIsTouch() {
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    setIsTouch(check());
+  }, []);
+  return isTouch;
+}
 
+/** AED logo SVG inline — the new Dhs logo with D and two arrows */
+export function AedLogo({ className = 'aed-logo' }: { className?: string }) {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-card hover:shadow-card-hover transition-all duration-300 group relative">
-      <div className="p-8 flex items-center justify-center bg-surface-accent min-h-[200px] relative">
-        <div className="w-[280px] transform group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+    <img
+      className={className}
+      style={{ height: '0.75em', width: 'auto', display: 'inline-block', verticalAlign: 'middle' }}
+      alt="AED"
+      src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEwMDAgODcwIiB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI4NzAiPgoJPHRpdGxlPkxheWVyIGNvcHk8L3RpdGxlPgoJPHN0eWxlPgoJCS5zMCB7IGZpbGw6IGN1cnJlbnRDb2xvciB9IAoJPC9zdHlsZT4KCTxwYXRoIGlkPSJMYXllciBjb3B5IiBjbGFzcz0iczAiIGQ9Im04OC4zIDFjMC40IDAuNiAyLjYgMy4zIDQuNyA1LjkgMTUuMyAxOC4yIDI2LjggNDcuOCAzMyA4NS4xIDQuMSAyNC41IDQuMyAzMi4yIDQuMyAxMjUuNnY4N2gtNDEuOGMtMzguMiAwLTQyLjYtMC4yLTUwLjEtMS43LTExLjgtMi41LTI0LTkuMi0zMi4yLTE3LjgtNi41LTYuOS02LjMtNy4zLTUuOSAxMy42IDAuNSAxNy4zIDAuNyAxOS4yIDMuMiAyOC42IDQgMTQuOSA5LjUgMjYgMTcuOCAzNS45IDExLjMgMTMuNiAyMi44IDIxLjIgMzkuMiAyNi4zIDMuNSAxIDEwLjkgMS40IDM3LjEgMS42bDMyLjcgMC41djQzLjMgNDMuNGwtNDYuMS0wLjMtNDYuMy0wLjMtOC0zLjJjLTkuNS0zLjgtMTMuOC02LjYtMjMuMS0xNC45bC02LjgtNi4xIDAuNCAxOS4xYzAuNSAxNy43IDAuNiAxOS43IDMuMSAyOC43IDguNyAzMS44IDI5LjcgNTQuNSA1Ny40IDYxLjkgNi45IDEuOSA5LjYgMiAzOC41IDIuNGwzMC45IDAuNHY4OS42YzAgNTQuMS0wLjMgOTQtMC44IDEwMC44LTAuNSA2LjItMi4xIDE3LjgtMy41IDI1LjktNi41IDM3LjMtMTguMiA2NS40LTM1IDgzLjZsLTMuNCAzLjdoMTY5LjFjMTAxLjEgMCAxNzYuNy0wLjQgMTg3LjgtMC45IDE5LjUtMSA2My01LjMgNzIuOC03LjQgMy4xLTAuNiA4LjktMS41IDEyLjctMi4xIDguMS0xLjIgMjEuNS00IDQwLjgtOC45IDI3LjItNi44IDUyLTE1LjMgNzYuMy0yNi4xIDcuNi0zLjQgMjkuNC0xNC41IDM1LjItMTggMy4xLTEuOCA2LjgtNCA4LjItNC43IDMuOS0yLjEgMTAuNC02LjMgMTkuOS0xMy4xIDQuNy0zLjQgOS40LTYuNyAxMC40LTcuNCA0LjItMi44IDE4LjctMTQuOSAyNS4zLTIxIDI1LjEtMjMuMSA0Ni4xLTQ4LjggNjIuNC03Ni4zIDIuMy00IDUuMy05IDYuNi0xMS4xIDMuMy01LjYgMTYuOS0zMy42IDE4LjItMzcuOCAwLjYtMS45IDEuNC0zLjkgMS44LTQuMyAyLjYtMy40IDE3LjYtNTAuNiAxOS40LTYwLjkgMC42LTMuMyAwLjktMy44IDMuNC00LjMgMS42LTAuMyAyNC45LTAuMyA1MS44LTAuMSA1My44IDAuNCA1My44IDAuNCA2NS43IDUuOSA2LjcgMy4xIDguNyA0LjUgMTYuMSAxMS4yIDkuNyA4LjcgOC44IDEwLjEgOC4yLTExLjctMC40LTEyLjgtMC45LTIwLjctMS44LTIzLjktMy40LTEyLjMtNC4yLTE0LjktNy4yLTIxLjEtOS44LTIxLjQtMjYuMi0zNi43LTQ3LjItNDRsLTguMi0zLTMzLjQtMC40LTMzLjMtMC41IDAuNC0xMS43YzAuNC0xNS40IDAuNC00NS45LTAuMS02MS42bC0wLjQtMTIuNiA0NC42LTAuMmMzOC4yLTAuMiA0NS4zIDAgNDkuNSAxLjEgMTIuNiAzLjUgMjEuMSA4LjMgMzEuNSAxNy44bDUuOCA1LjR2LTE0LjhjMC0xNy42LTAuOS0yNS40LTQuNS0zNy03LjEtMjMuNS0yMS4xLTQxLTQxLjEtNTEuOC0xMy03LTEzLjgtNy4yLTU4LjUtNy41LTI2LjItMC4yLTM5LjktMC42LTQwLjYtMS4yLTAuNi0wLjYtMS4xLTEuNi0xLjEtMi40IDAtMC44LTEuNS03LjEtMy41LTEzLjktMjMuNC04Mi43LTY3LjEtMTQ4LjQtMTMxLTE5Ny4xLTguNy02LjctMzAtMjAuOC0zOC42LTI1LjYtMy4zLTEuOS02LjktMy45LTcuOC00LjUtNC4yLTIuMy0yOC4zLTE0LjEtMzQuMy0xNi42LTMuNi0xLjYtOC4zLTMuNi0xMC40LTQuNC0zNS4zLTE1LjMtOTQuNS0yOS44LTEzOS43LTM0LjMtNy40LTAuNy0xNy4yLTEuOC0yMS43LTIuMi0yMC40LTIuMy00OC43LTIuNi0yMDkuNC0yLjYtMTM1LjggMC0xNjkuOSAwLjMtMTY5LjQgMXptMzMwLjcgNDMuM2MzMy44IDIgNTQuNiA0LjYgNzguOSAxMC41IDc0LjIgMTcuNiAxMjYuNCA1NC44IDE2NC4zIDExNyAzLjUgNS44IDE4LjMgMzYgMjAuNSA0Mi4xIDEwLjUgMjguMyAxNS42IDQ1LjEgMjAuMSA2Ny4zIDEuMSA1LjQgMi42IDEyLjYgMy4zIDE2IDAuNyAzLjMgMSA2LjQgMC43IDYuNy0wLjUgMC40LTEwMC45IDAuNi0yMjMuMyAwLjVsLTIyMi41LTAuMi0wLjMtMTI4LjVjLTAuMS03MC42IDAtMTI5LjMgMC4zLTEzMC40bDAuNC0xLjloNzEuMWMzOSAwIDc4IDAuNCA4Ni41IDAuOXptMjk3LjUgMzUwLjNjMC43IDQuMyAwLjcgNzcuMyAwIDgwLjlsLTAuNiAyLjctMjI3LjUtMC4yLTIyNy40LTAuMy0wLjItNDIuNGMtMC4yLTIzLjMgMC00Mi43IDAuMi00My4xIDAuMy0wLjUgOTcuMi0wLjggMjI3LjctMC44aDIyNy4yem0tMTAuMiAxNzEuN2MwLjUgMS41LTEuOSAxMy44LTYuOCAzMy44LTUuNiAyMi41LTEzLjIgNDUuMi0yMC45IDYyLTMuOCA4LjYtMTMuMyAyNy4yLTE1LjYgMzAuNy0xLjEgMS42LTQuMyA2LjctNy4xIDExLjItMTggMjguMi00My43IDUzLjktNzMgNzIuOS0xMC43IDYuOC0zMi43IDE4LjQtMzguNiAyMC4yLTEuMiAwLjMtMi41IDAuOS0zIDEuMy0wLjcgMC42LTkuOCA0LTIwLjQgNy44LTE5LjUgNi45LTU2LjYgMTQuNC04Ni40IDE3LjUtMTkuMyAxLjktMjIuNCAyLTk2LjcgMmgtNzYuOXYtMTI5LjctMTI5LjhsMjIwLjktMC40YzEyMS41LTAuMiAyMjEuNi0wLjUgMjIyLjQtMC43IDAuOS0wLjEgMS44IDAuNSAyLjEgMS4yeiIvPgo8L3N2Zz4="
+    />
+  );
+}
+
+function PlateCard({ emirate, code, number, price, plateUrl, comingSoon, sellerPhone, plateNumber, listingId, status, plateStyle = 'private', vehicleType }: PlateCardProps) {
+  const isTouch = useIsTouch();
+  // Resolve display type for icons — always reflect stored data, no defaults
+  const displayType: 'car' | 'bike' | 'classic' = vehicleType ?? (plateStyle === 'bike' ? 'bike' : plateStyle === 'classic' ? 'classic' : 'car');
+  const isSold = status === 'sold';
+  const dataUrl = usePlateImage(emirate, code, number, plateStyle);
+  const [flipped, setFlipped] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const displayPlate = plateNumber || `${code} ${number}`.trim();
+  const phoneDigits = sellerPhone?.replace(/\D/g, '') || '';
+  const whatsappUrl = phoneDigits
+    ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(`Hi, I'm interested in plate ${displayPlate}`)}`
+    : null;
+  const telUrl = phoneDigits ? `tel:+${phoneDigits}` : null;
+
+  // Check if this listing is already favorited
+  useEffect(() => {
+    if (!user || !listingId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_type', 'plate')
+        .eq('listing_id', listingId)
+        .maybeSingle();
+      if (data) setIsFavorite(true);
+    })();
+  }, [user, listingId]);
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.error('Please log in to save favorites'); return; }
+    if (!listingId) return;
+
+    if (isFavorite) {
+      await supabase.from('favorites').delete()
+        .eq('user_id', user.id)
+        .eq('listing_type', 'plate')
+        .eq('listing_id', listingId);
+      setIsFavorite(false);
+      toast.success('Removed from favorites');
+    } else {
+      await supabase.from('favorites').insert({
+        user_id: user.id,
+        listing_type: 'plate',
+        listing_id: listingId,
+      });
+      setIsFavorite(true);
+      toast.success('Added to favorites');
+    }
+  };
+
+  if (comingSoon) {
+    return (
+      <div className="h-[240px] sm:h-[260px] bg-card/50 rounded-2xl border border-border/50 flex flex-col items-center justify-center opacity-60">
+        <div className="w-[90%] mx-auto h-[120px] flex items-center justify-center">
           {dataUrl ? (
-            <img
-              src={dataUrl}
-              alt={`${listing.emirate} ${listing.code} ${listing.number}`}
-              className="w-full h-auto rounded shadow-plate"
-              style={{ imageRendering: '-webkit-optimize-contrast' } as React.CSSProperties}
-            />
+            <img src={dataUrl} alt="Coming Soon" className="w-full h-full object-contain object-center opacity-40" />
           ) : (
-            <div className="animate-pulse bg-gray-200 rounded-lg w-[260px] h-[65px]" />
+            <div className="animate-pulse bg-muted rounded w-full h-full" />
           )}
         </div>
+        <p className="text-sm font-bold text-muted-foreground mt-4 uppercase tracking-wider">Coming Soon</p>
       </div>
-      <div className="p-6 border-t border-gray-100">
-        <div className="flex justify-between items-end">
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">{priceLabel}</p>
-            <p className="text-2xl font-bold text-text-main font-mono tracking-tight">{listing.price}</p>
+    );
+  }
+
+  // ── TOUCH DEVICES: simple card, no flip ──
+  if (isTouch) {
+    return (
+      <Link
+        to={plateUrl}
+        className={`block h-[240px] bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden relative ${isSold ? 'opacity-80' : ''}`}
+      >
+        {isSold && (
+          <div className="sold-ribbon"><span>SOLD</span></div>
+        )}
+        <div className="flex flex-col items-center justify-center h-full relative">
+          {/* Vehicle type badge */}
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border bg-card/90 backdrop-blur-sm shadow-sm border-border/60 text-muted-foreground">
+            {displayType === 'bike' ? (
+              <><Bike className="h-3 w-3" /> Bike</>
+            ) : displayType === 'classic' ? (
+              <><span className="text-[9px] font-serif italic">C</span> Classic</>
+            ) : (
+              <><Car className="h-3 w-3" /> Car</>
+            )}
           </div>
-          <button
-            className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
-              isBid
-                ? 'bg-white text-text-main border border-gray-100 shadow-sm hover:bg-gray-50 hover:scale-105'
-                : 'bg-gray-100 text-text-main border border-gray-200 hover:bg-gray-200'
-            }`}
-          >
-            {isBid ? <Gavel className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-          </button>
+          {/* Favorite button */}
+          {listingId && (
+            <button
+              onClick={toggleFavorite}
+              className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-white/80 border border-border/40 shadow-sm flex items-center justify-center transition-all active:scale-90"
+            >
+              <Heart className={`h-3.5 w-3.5 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+            </button>
+          )}
+          {/* Plate image */}
+          <div className="w-[90%] mx-auto h-[90px] flex items-center justify-center">
+            {dataUrl ? (
+              <img
+                src={dataUrl}
+                alt={`${emirate} ${code} ${number}`}
+                className="w-full h-full object-contain object-center"
+                style={{ imageRendering: '-webkit-optimize-contrast' } as React.CSSProperties}
+              />
+            ) : (
+              <div className="animate-pulse bg-muted rounded w-full h-full" />
+            )}
+          </div>
+          {/* Price + View button */}
+          <div className="mt-2 p-2.5 w-full border-t border-border/50">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-bold text-foreground font-mono tracking-tight flex items-center gap-1">
+                  {price ? (
+                    <>
+                      <AedLogo />
+                      <span className="text-foreground">{price.replace(/^AED\s*/, '')}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">Contact for price</span>
+                  )}
+                </p>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-primary px-2.5 py-1 rounded-full">
+                View →
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // ── DESKTOP: flip card ──
+  const handleCardClick = () => {
+    if (!flipped) {
+      setFlipped(true);
+    } else {
+      navigate(plateUrl);
+    }
+  };
+
+  return (
+    <div
+      className="perspective-1000 h-[240px] sm:h-[280px] cursor-pointer"
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+      onClick={handleCardClick}
+    >
+      <div
+        className={`relative w-full h-full transition-transform duration-500 ease-out transform-style-3d will-change-transform ${flipped ? 'rotate-y-180' : ''}`}
+      >
+        {/* FRONT SIDE — plate card */}
+        <div className="absolute inset-0 backface-hidden">
+          <Link to={plateUrl} className={`block h-full bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 group overflow-hidden ${isSold ? 'opacity-80' : ''}`} onClick={e => flipped && e.preventDefault()}>
+            {/* SOLD Ribbon */}
+            {isSold && (
+              <div className="sold-ribbon">
+                <span>SOLD</span>
+              </div>
+            )}
+            <div className="flex flex-col items-center justify-center h-full relative">
+              {/* Vehicle type badge — top-left */}
+              <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border
+                            bg-card/90 backdrop-blur-sm shadow-sm border-border/60 text-muted-foreground">
+                {displayType === 'bike' ? (
+                  <><Bike className="h-3 w-3" /> Bike</>
+                ) : displayType === 'classic' ? (
+                  <><span className="text-[9px] font-serif italic">C</span> Classic</>
+                ) : (
+                  <><Car className="h-3 w-3" /> Car</>
+                )}
+              </div>
+
+              {/* Plate image */}
+              <div className="w-[90%] mx-auto h-[90px] sm:h-[120px] flex items-center justify-center">
+                {dataUrl ? (
+                  <img
+                    src={dataUrl}
+                    alt={`${emirate} ${code} ${number}`}
+                    className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300"
+                    style={{ imageRendering: '-webkit-optimize-contrast' } as React.CSSProperties}
+                  />
+                ) : (
+                  <div className="animate-pulse bg-muted rounded w-full h-full" />
+                )}
+              </div>
+              {/* Price section */}
+              <div className="mt-2 sm:mt-4 p-2.5 sm:p-4 w-full border-t border-border/50">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="hidden sm:block text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Price</p>
+                    <p className="text-sm sm:text-xl font-bold text-foreground font-mono tracking-tight flex items-center gap-1">
+                      {price ? (
+                        <>
+                          <AedLogo />
+                          <span>{price.replace(/^AED\s*/, '')}</span>
+                        </>
+                  ) : <span className="text-muted-foreground text-xs">Contact for price</span>}
+                </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {telUrl && (
+                      <a
+                        href={telUrl}
+                        onClick={e => e.stopPropagation()}
+                        className="hidden group-hover:flex h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 items-center justify-center text-white transition-all shadow-sm hover:shadow-md hover:scale-110 active:scale-95"
+                        title="Call Now"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    {whatsappUrl && (
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="hidden group-hover:flex h-8 w-8 rounded-full bg-[#25D366] hover:bg-[#1da851] items-center justify-center text-white transition-all shadow-sm hover:shadow-md hover:scale-110 active:scale-95"
+                        title="WhatsApp"
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    <p className={`text-[10px] text-muted-foreground font-bold uppercase tracking-wider group-hover:text-primary transition-colors ${(telUrl || whatsappUrl) ? 'hidden group-hover:hidden sm:group-hover:block' : ''}`}>View →</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* BACK SIDE — contact options (same fixed size as front) */}
+        <div className="absolute inset-0 backface-hidden rotate-y-180">
+          <div className={`h-full bg-card rounded-2xl border border-border flex flex-col items-center justify-center px-4 py-3 relative ${isSold ? 'opacity-80' : ''}`}>
+            {isSold && (
+              <div className="sold-ribbon"><span>SOLD</span></div>
+            )}
+            {/* Heart button — top right */}
+            {listingId && (
+              <button
+                onClick={toggleFavorite}
+                className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white border border-border shadow-sm flex items-center justify-center transition-all hover:scale-110 active:scale-90 z-10"
+                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Heart className={`h-3.5 w-3.5 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}`} />
+              </button>
+            )}
+            <p className="text-xs font-display font-bold text-foreground mb-0.5">Premium Plate</p>
+            <p className="text-[9px] text-muted-foreground font-medium mb-2">{emirate}</p>
+
+            {/* Plate number */}
+            <div className="bg-surface border border-border rounded-xl px-4 py-1.5 mb-3">
+              <p className="font-mono font-black text-foreground text-lg tracking-wider text-center">
+                {code && <span>{code}</span>}
+                {code && number && <span className="mx-1"> </span>}
+                <span>{number}</span>
+              </p>
+            </div>
+
+            {/* Action buttons — horizontal */}
+            <div className="w-full flex gap-2 mb-2">
+              {telUrl && (
+                <a
+                  href={telUrl}
+                  onClick={e => e.stopPropagation()}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white py-2 rounded-full font-bold text-xs transition-all shadow-sm hover:shadow-md"
+                >
+                  <Phone className="h-3.5 w-3.5" /> Call
+                </a>
+              )}
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#25D366] to-[#20BD5A] hover:from-[#1da851] hover:to-[#189E49] text-white py-2 rounded-full font-bold text-xs transition-all shadow-sm hover:shadow-md"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                </a>
+              )}
+            </div>
+
+            {/* View Details */}
+            <Link
+              to={plateUrl}
+              onClick={e => e.stopPropagation()}
+              className="text-[10px] font-bold text-foreground/70 hover:text-primary transition-colors uppercase tracking-wider"
+            >
+              VIEW DETAILS →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

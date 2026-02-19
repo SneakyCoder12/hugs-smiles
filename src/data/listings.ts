@@ -46,12 +46,24 @@ export const LISTINGS: PlateListing[] = [
 
 export const PLATE_TEMPLATES: Record<string, string> = {
   abudhabi: '/abudhabi-plate.png',
+  abudhabi_bike: '/AD-B-plate.png',
+  abudhabi_classic: '/AD-C-Plate.png',
   dubai: '/dubai-plate.png',
+  dubai_bike: '/Dubai-B-plate.png',
+  dubai_classic: '/Dubai-C-Plate.png',
   ajman: '/ajman-plate.png',
+  ajman_bike: '/Ajman-B-plate.png',
+  ajman_classic: '/ajman-C-plate.png',
   rak: '/rak-plate.png',
+  rak_bike: '/RAK-B-plate.png',
+  rak_classic: '/RAK-C-Plate.png',
   fujairah: '/fujariah-plate.png',
+  fujairah_bike: '/FUJ-B-plate.png',
   sharjah: '/sharjah-plate.png',
+  sharjah_bike: '/SHJ-B-plate.png',
+  sharjah_classic: '/Shj-C-Plate.png',
   umm_al_quwain: '/umm-al-q-plate.png',
+  umm_al_quwain_bike: '/UAQ-B-plate.png',
 };
 
 export interface EmirateSection {
