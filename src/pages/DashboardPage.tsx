@@ -423,7 +423,7 @@ export default function DashboardPage() {
 
   return (
     <div className="bg-background min-h-screen pt-16 sm:pt-20">
-      <div className="flex min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
+      <div className="flex min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex-col lg:flex-row">
 
         {/* ── LEFT SIDEBAR ── */}
         <aside className="hidden lg:flex flex-col w-64 xl:w-72 border-r border-border/60 bg-card/50 flex-shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto">

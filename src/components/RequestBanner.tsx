@@ -20,27 +20,27 @@ export default function RequestBanner() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
 
           {/* Left side — text */}
-          <div className="text-center md:text-start max-w-xl w-full">
-            <div className="inline-flex items-center gap-2 mb-4 bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/20">
+          <div className="text-center md:text-start max-w-xl w-full min-w-0">
+            <div className="inline-flex items-center gap-2 mb-4 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 max-w-full overflow-hidden">
               <Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">{t('premiumService')}</span>
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-primary truncate">{t('premiumService')}</span>
             </div>
             <h2 className="text-xl sm:text-3xl md:text-4xl font-display font-black text-foreground tracking-tight mb-3 leading-tight">
               {t('cantFindDream')}
             </h2>
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-md">
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
               {t('cantFindDreamDesc')}
             </p>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-5 justify-center md:justify-start">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-5 justify-center md:justify-start">
+              <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                 <Search className="h-3.5 w-3.5 text-primary/60 flex-shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{t('weSearchForYou')}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider truncate">{t('weSearchForYou')}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                 <Star className="h-3.5 w-3.5 text-primary/60 fill-primary/40 flex-shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{t('vipService')}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider truncate">{t('vipService')}</span>
               </div>
             </div>
           </div>
