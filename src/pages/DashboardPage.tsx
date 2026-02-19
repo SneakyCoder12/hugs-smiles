@@ -426,7 +426,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
 
         {/* ── LEFT SIDEBAR ── */}
-        <aside className="hidden lg:flex flex-col w-64 xl:w-72 border-r border-border/60 bg-card/50 flex-shrink-0 sticky top-16 sm:top-20 h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] overflow-y-auto">
+        <aside className="hidden lg:flex flex-col w-64 xl:w-72 border-r border-border/60 bg-card/50 flex-shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto">
           {/* User Profile Block */}
           <div className="p-6 border-b border-border/60">
             <div className="flex items-center gap-3 mb-3">
