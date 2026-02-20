@@ -131,7 +131,7 @@ export default function MarketplacePage() {
   const Chip = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
     <button
       onClick={onClick}
-      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold border transition-all touch-manipulation ${
         active
           ? 'bg-primary text-primary-foreground border-primary shadow-sm'
           : 'bg-card text-foreground border-border hover:border-primary/50 hover:bg-surface'
@@ -296,15 +296,15 @@ export default function MarketplacePage() {
         {/* ── MOBILE SLIDE-UP FILTER PANEL ── */}
         {filterPanelOpen && (
           <>
-            {/* Backdrop — z-[100] to sit above navbar (z-50) */}
+            {/* Backdrop — above top navbar (z-50) AND bottom nav (z-50) */}
             <div
-              className="sm:hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-[2px]"
+              className="sm:hidden fixed inset-0 z-[110] bg-black/60 backdrop-blur-[2px]"
               onClick={() => setFilterPanelOpen(false)}
             />
-            {/* Panel — slides up from bottom, capped so it never covers navbar, scrollable */}
+            {/* Panel — sits ABOVE the bottom nav (h-16 = 64px), slides up */}
             <div
-              className="sm:hidden fixed inset-x-0 bottom-0 z-[101] bg-card rounded-t-3xl shadow-2xl flex flex-col animate-slide-up"
-              style={{ maxHeight: 'min(85dvh, 620px)' }}
+              className="sm:hidden fixed inset-x-0 z-[111] bg-card rounded-t-3xl shadow-2xl flex flex-col animate-slide-up overflow-hidden"
+              style={{ bottom: '64px', maxHeight: 'calc(100dvh - 80px - 64px)' }}
             >
               {/* Drag handle */}
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -322,9 +322,9 @@ export default function MarketplacePage() {
                 </button>
               </div>
 
-              {/* Scrollable content */}
-              <div className="overflow-y-auto flex-1 overscroll-contain">
-                <div className="p-4 space-y-4">
+              {/* Scrollable content — overflow-x hidden to kill horizontal scroll */}
+              <div className="overflow-y-auto overflow-x-hidden flex-1 overscroll-contain">
+                <div className="p-4 space-y-4 w-full">
                   {/* Emirate */}
                   <div>
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Emirate</label>
