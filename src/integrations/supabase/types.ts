@@ -46,6 +46,8 @@ export type Database = {
           description: string | null
           emirate: string
           id: string
+          plate_image_path: string | null
+          plate_image_url: string | null
           plate_number: string
           plate_style: string | null
           price: number | null
@@ -60,6 +62,8 @@ export type Database = {
           description?: string | null
           emirate: string
           id?: string
+          plate_image_path?: string | null
+          plate_image_url?: string | null
           plate_number: string
           plate_style?: string | null
           price?: number | null
@@ -74,6 +78,8 @@ export type Database = {
           description?: string | null
           emirate?: string
           id?: string
+          plate_image_path?: string | null
+          plate_image_url?: string | null
           plate_number?: string
           plate_style?: string | null
           price?: number | null

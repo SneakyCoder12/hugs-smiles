@@ -122,7 +122,7 @@ function PlateCard({ emirate, code, number, price, plateUrl, comingSoon, sellerP
     return (
       <Link
         to={plateUrl}
-        className={`block h-[240px] bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden relative ${isSold ? 'opacity-80' : ''}`}
+        className={`block h-[210px] sm:h-[240px] bg-card rounded-2xl border border-border active:border-primary/40 active:shadow-md transition-all duration-200 overflow-hidden relative ${isSold ? 'opacity-80' : ''}`}
       >
         {isSold && (
           <div className="sold-ribbon"><span>SOLD</span></div>
