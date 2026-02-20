@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Search, ChevronLeft, ChevronRight, Loader2, X, Sparkles, Settings } from 'lucide-react';
 import PlateCard from '@/components/PlateCard';
+import CodeSearchInput from '@/components/CodeSearchInput';
 
 const EMIRATES = ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'];
 const EMIRATE_KEY_MAP: Record<string, string> = {
@@ -247,11 +248,12 @@ export default function MarketplacePage() {
               {EMIRATES.map(em => <option key={em} value={em}>{em}</option>)}
             </select>
             {availableCodes.length > 0 && (
-              <select value={codeFilter} onChange={e => { setCodeFilter(e.target.value); setPage(0); }}
-                className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-[120px]">
-                <option value="">All Codes</option>
-                {availableCodes.map(code => <option key={code} value={code}>{code}</option>)}
-              </select>
+              <CodeSearchInput
+                codes={availableCodes}
+                value={codeFilter}
+                onChange={code => { setCodeFilter(code); setPage(0); }}
+                className="min-w-[140px]"
+              />
             )}
             <div className="flex gap-2 items-center">
               <input type="number" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(0); }}
@@ -362,16 +364,12 @@ export default function MarketplacePage() {
                   {availableCodes.length > 0 && (
                     <div>
                       <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Plate Code</label>
-                      <select
+                      <CodeSearchInput
+                        codes={availableCodes}
                         value={codeFilter}
-                        onChange={e => { setCodeFilter(e.target.value); setPage(0); }}
-                        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      >
-                        <option value="">All Codes</option>
-                        {availableCodes.map(code => (
-                          <option key={code} value={code}>{code}</option>
-                        ))}
-                      </select>
+                        onChange={code => { setCodeFilter(code); setPage(0); }}
+                        className="w-full"
+                      />
                     </div>
                   )}
 
