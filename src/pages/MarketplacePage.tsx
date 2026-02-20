@@ -143,7 +143,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-24">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20 sm:pt-24">
 
         {/* ─── Premium Plate Banner ─── */}
         <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-8 sm:mb-10 border border-border/60 shadow-sm bg-gradient-to-br from-surface via-card to-surface">
@@ -186,10 +186,10 @@ export default function MarketplacePage() {
         </div>
 
         {/* ── HEADER ROW ── */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-display font-bold text-foreground">{t('activeListings')}</h2>
-            <span className="text-sm text-muted-foreground font-mono">{total} plates</span>
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">{t('activeListings')}</h2>
+            <span className="text-xs sm:text-sm text-muted-foreground font-mono">{total} plates</span>
           </div>
           <div className="flex items-center gap-2">
             {hasFilters && (
@@ -197,19 +197,38 @@ export default function MarketplacePage() {
                 <X className="h-3 w-3" /> Clear
               </button>
             )}
-            {/* Mobile gear */}
+            {/* Mobile filter button */}
             <button
               onClick={() => setFilterPanelOpen(true)}
-              className="sm:hidden relative flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border shadow-sm"
+              className="sm:hidden relative flex items-center gap-2 px-3 h-9 rounded-xl bg-card border border-border shadow-sm text-sm font-medium text-foreground"
             >
-              <Settings className="h-5 w-5 text-muted-foreground" />
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[9px] font-black flex items-center justify-center">
+                <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-[9px] font-black flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
             </button>
           </div>
+        </div>
+
+        {/* ── MOBILE INLINE SEARCH BAR ── */}
+        <div className="sm:hidden mb-3">
+          <div className="relative">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(0); }}
+              className="w-full bg-card border border-border rounded-xl ps-10 pe-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              placeholder="Search plate number..."
+            />
+          </div>
+          {hasFilters && (
+            <button onClick={resetFilters} className="mt-2 flex items-center gap-1 text-xs text-primary font-bold">
+              <X className="h-3 w-3" /> Clear all filters
+            </button>
+          )}
         </div>
 
         {/* ── DESKTOP FILTERS ── */}
@@ -277,74 +296,72 @@ export default function MarketplacePage() {
         {/* ── MOBILE SLIDE-UP FILTER PANEL ── */}
         {filterPanelOpen && (
           <>
+            {/* Backdrop — z-[100] to sit above navbar (z-50) */}
             <div
-              className="sm:hidden fixed inset-0 z-[60] bg-black/50"
+              className="sm:hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-[2px]"
               onClick={() => setFilterPanelOpen(false)}
             />
-            <div className="sm:hidden fixed inset-x-0 bottom-0 z-[61] bg-card rounded-t-3xl shadow-2xl"
-              style={{ maxHeight: 'calc(100dvh - 80px)', overflowY: 'auto' }}
+            {/* Panel — slides up from bottom, capped so it never covers navbar, scrollable */}
+            <div
+              className="sm:hidden fixed inset-x-0 bottom-0 z-[101] bg-card rounded-t-3xl shadow-2xl flex flex-col animate-slide-up"
+              style={{ maxHeight: 'min(85dvh, 620px)' }}
             >
-              <div className="sticky top-0 bg-card px-4 pt-4 pb-3 border-b border-border flex items-center justify-between z-10">
-                <h3 className="font-bold text-lg text-foreground">Filters</h3>
-                <button onClick={() => setFilterPanelOpen(false)} className="p-2 rounded-xl hover:bg-surface transition-colors">
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div className="w-10 h-1 rounded-full bg-border" />
+              </div>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border flex-shrink-0">
+                <h3 className="font-bold text-base text-foreground">Filters</h3>
+                <button
+                  onClick={() => setFilterPanelOpen(false)}
+                  className="p-2 rounded-xl hover:bg-surface transition-colors active:scale-95"
+                >
                   <X className="h-5 w-5 text-foreground" />
                 </button>
               </div>
 
-              <div className="p-4 space-y-5 pb-8">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
-                    className="w-full bg-surface border border-border rounded-xl ps-10 pe-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    placeholder="Search plate number..." />
-                </div>
-
-                {/* Emirate */}
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Emirate</label>
-                  <div className="flex flex-wrap gap-2">
-                    <Chip label="All" active={emirateFilter === ''} onClick={() => { setEmirateFilter(''); setPage(0); }} />
-                    {EMIRATES.map(em => (
-                      <Chip key={em} label={em} active={emirateFilter === em} onClick={() => { setEmirateFilter(emirateFilter === em ? '' : em); setPage(0); }} />
-                    ))}
+              {/* Scrollable content */}
+              <div className="overflow-y-auto flex-1 overscroll-contain">
+                <div className="p-4 space-y-4">
+                  {/* Emirate */}
+                  <div>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Emirate</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Chip label="All" active={emirateFilter === ''} onClick={() => { setEmirateFilter(''); setPage(0); }} />
+                      {EMIRATES.map(em => (
+                        <Chip key={em} label={em} active={emirateFilter === em} onClick={() => { setEmirateFilter(emirateFilter === em ? '' : em); setPage(0); }} />
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Vehicle Type */}
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Vehicle Type</label>
-                  <div className="flex flex-wrap gap-2">
-                    {PLATE_TYPE_CHIPS.map(c => (
-                      <Chip key={c.value} label={c.label} active={vehicleTypeFilter === c.value}
-                        onClick={() => { setVehicleTypeFilter(c.value); setPage(0); }} />
-                    ))}
+                  {/* Vehicle Type */}
+                  <div>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Vehicle Type</label>
+                    <div className="flex flex-wrap gap-2">
+                      {PLATE_TYPE_CHIPS.map(c => (
+                        <Chip key={c.value} label={c.label} active={vehicleTypeFilter === c.value}
+                          onClick={() => { setVehicleTypeFilter(c.value); setPage(0); }} />
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Digit Count */}
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Number of Digits</label>
-                  <div className="flex flex-wrap gap-2">
-                    {DIGIT_COUNT_CHIPS.map(c => (
-                      <Chip key={c.value} label={c.label || 'Any'} active={digitCountFilter === c.value}
-                        onClick={() => { setDigitCountFilter(c.value); setPage(0); }} />
-                    ))}
+                  {/* Digit Count */}
+                  <div>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Number of Digits</label>
+                    <div className="flex flex-wrap gap-2">
+                      {DIGIT_COUNT_CHIPS.map(c => (
+                        <Chip key={c.value} label={c.label || 'Any'} active={digitCountFilter === c.value}
+                          onClick={() => { setDigitCountFilter(c.value); setPage(0); }} />
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Price Range + Code */}
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Price Range (AED)</label>
-                  <div className="flex gap-2 mb-3">
-                    <input type="number" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(0); }}
-                      placeholder="Min" className="flex-1 bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                    <input type="number" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(0); }}
-                      placeholder="Max" className="flex-1 bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
+                  {/* Plate Code */}
                   {availableCodes.length > 0 && (
-                    <>
-                      <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Plate Code</label>
+                    <div>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Plate Code</label>
                       <select
                         value={codeFilter}
                         onChange={e => { setCodeFilter(e.target.value); setPage(0); }}
@@ -355,19 +372,39 @@ export default function MarketplacePage() {
                           <option key={code} value={code}>{code}</option>
                         ))}
                       </select>
-                    </>
+                    </div>
                   )}
-                </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <button onClick={resetFilters} className="flex-1 py-3 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-surface transition-colors">
-                    Clear All
-                  </button>
-                  <button onClick={() => setFilterPanelOpen(false)} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
-                    Show {total} Results
-                  </button>
+                  {/* Price Range */}
+                  <div>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Price Range (AED)</label>
+                    <div className="flex gap-2">
+                      <input type="number" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(0); }}
+                        placeholder="Min"
+                        className="flex-1 bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                      <span className="self-center text-muted-foreground">–</span>
+                      <input type="number" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(0); }}
+                        placeholder="Max"
+                        className="flex-1 bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Footer actions — always visible at bottom */}
+              <div className="flex gap-3 p-4 border-t border-border flex-shrink-0 pb-safe">
+                <button
+                  onClick={resetFilters}
+                  className="flex-1 py-3 rounded-2xl border border-border text-sm font-bold text-foreground bg-surface active:scale-95 transition-all"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setFilterPanelOpen(false)}
+                  className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-all"
+                >
+                  Show {total} Results
+                </button>
               </div>
             </div>
           </>
@@ -379,7 +416,7 @@ export default function MarketplacePage() {
         ) : listings.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">{t('noResults')}</div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 mb-8">
             {listings.map(listing => {
               const parts = listing.plate_number.split(' ');
               const code = parts.length > 1 ? parts[0] : '';
